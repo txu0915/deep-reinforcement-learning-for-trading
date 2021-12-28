@@ -6,18 +6,19 @@ import gym
 import torch
 
 # RL models from stable-baselines
-from stable_baselines import GAIL, SAC
-from stable_baselines import ACER
-from stable_baselines import PPO2
-from stable_baselines import A2C
-from stable_baselines import DDPG
-from stable_baselines import TD3
+# from stable_baselines3.sac import SAC
+#from stable_baselines3 import GAIL, SAC
+# from stable_baselines import ACER
+from stable_baselines3.ppo import PPO
+from stable_baselines3 import A2C
+from stable_baselines3 import DDPG
+from stable_baselines3 import TD3
 
-from stable_baselines.ddpg.policies import DDPGPolicy
-from stable_baselines.common.policies import MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy
-from stable_baselines.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
-from stable_baselines.common.vec_env import DummyVecEnv
-from stable_baselines.common import set_global_seeds
+# from stable_baselines3.ddpg.policies import DDPGPolicy
+# from stable_baselines3.common.policies import MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy
+from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise #AdaptiveParamNoiseSpec
+from stable_baselines3.common.vec_env import DummyVecEnv
+# from stable_baselines3.common import set_global_seeds
 from preprocessing.pull_and_process import *
 from config import config
 
@@ -40,16 +41,16 @@ def train_A2C(env_train, model_name, timesteps=25000):
     print('Training time (A2C): ', (end - start) / 60, ' minutes')
     return model
 
-def train_ACER(env_train, model_name, timesteps=25000):
-    start = time.time()
-    model = ACER('MlpPolicy', env_train, verbose=0, seed=2021)
-
-    model.learn(total_timesteps=timesteps)
-    end = time.time()
-
-    model.save(f"{config.TRAINED_MODEL_DIR}/{model_name}")
-    print('Training time (A2C): ', (end - start) / 60, ' minutes')
-    return model
+# def train_ACER(env_train, model_name, timesteps=25000):
+#     start = time.time()
+#     model = ACER('MlpPolicy', env_train, verbose=0, seed=2021)
+#
+#     model.learn(total_timesteps=timesteps)
+#     end = time.time()
+#
+#     model.save(f"{config.TRAINED_MODEL_DIR}/{model_name}")
+#     print('Training time (A2C): ', (end - start) / 60, ' minutes')
+#     return model
 
 
 def train_DDPG(env_train, model_name, timesteps=10000):
@@ -61,7 +62,7 @@ def train_DDPG(env_train, model_name, timesteps=10000):
     action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=float(0.5) * np.ones(n_actions))
 
     start = time.time()
-    model = DDPG('MlpPolicy', env_train, param_noise=param_noise, action_noise=action_noise, seed=2021)
+    model = DDPG('MlpPolicy', env_train, action_noise=action_noise, seed=2021)
 
     model.learn(total_timesteps=timesteps)
     end = time.time()
@@ -74,7 +75,7 @@ def train_PPO(env_train, model_name, timesteps=50000):
     """PPO model"""
 
     start = time.time()
-    model = PPO2('MlpPolicy', env_train, ent_coef = 0.005, nminibatches = 8, seed=2021)
+    model = PPO('MlpPolicy', env_train, ent_coef = 0.005, seed=2021)
 
 
     model.learn(total_timesteps=timesteps)
@@ -83,25 +84,25 @@ def train_PPO(env_train, model_name, timesteps=50000):
     model.save(f"{config.TRAINED_MODEL_DIR}/{model_name}")
     print('Training time (PPO): ', (end - start) / 60, ' minutes')
     return model
-
-def train_GAIL(env_train, model_name, timesteps=1000, seed=2021):
-    """GAIL Model"""
-    #from stable_baselines.gail import ExportDataset, generate_expert_traj
-    start = time.time()
-    # generate expert trajectories
-    model = SAC('MLpPolicy', env_train, verbose=1)
-    generate_expert_traj(model, 'expert_model_gail', n_timesteps=100, n_episodes=10)
-
-    # Load dataset
-    dataset = ExpertDataset(expert_path='expert_model_gail.npz', traj_limitation=10, verbose=1)
-    model = GAIL('MLpPolicy', env_train, dataset, verbose=1)
-
-    model.learn(total_timesteps=1000)
-    end = time.time()
-
-    model.save(f"{config.TRAINED_MODEL_DIR}/{model_name}")
-    print('Training time (PPO): ', (end - start) / 60, ' minutes')
-    return model
+#
+# def train_GAIL(env_train, model_name, timesteps=1000, seed=2021):
+#     """GAIL Model"""
+#     #from stable_baselines.gail import ExportDataset, generate_expert_traj
+#     start = time.time()
+#     # generate expert trajectories
+#     model = SAC('MLpPolicy', env_train, verbose=1)
+#     generate_expert_traj(model, 'expert_model_gail', n_timesteps=100, n_episodes=10)
+#
+#     # Load dataset
+#     dataset = ExpertDataset(expert_path='expert_model_gail.npz', traj_limitation=10, verbose=1)
+#     model = GAIL('MLpPolicy', env_train, dataset, verbose=1)
+#
+#     model.learn(total_timesteps=1000)
+#     end = time.time()
+#
+#     model.save(f"{config.TRAINED_MODEL_DIR}/{model_name}")
+#     print('Training time (PPO): ', (end - start) / 60, ' minutes')
+#     return model
 
 
 def DRL_prediction(df,
@@ -194,7 +195,7 @@ def run_ensemble_strategy(df, unique_trade_date, rebalance_window, validation_wi
     insample_turbulence_threshold = np.quantile(insample_turbulence.turbulence.values, .90)
 
     start = time.time()
-    set_global_seeds(2021)
+    # set_global_seeds(2021)
     for i in range(validation_window, len(unique_trade_date), rebalance_window):
         print("============================================")
         ## initial state is empty

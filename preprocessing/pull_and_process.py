@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from stockstats import StockDataFrame as Sdf
 from config import config
-import pandas_market_calendars as mcal
+# import pandas_market_calendars as mcal
 import datetime as dt
 import yahoo_fin.stock_info as si
 import yfinance as yf
