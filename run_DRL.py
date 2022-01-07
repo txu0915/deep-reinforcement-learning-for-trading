@@ -10,44 +10,44 @@ from config import config
 from model.models import *
 import os
 
+
 def run_model() -> None:
     """Train the model."""
 
     # read and preprocess data
-    today = int(dt.datetime.now().strftime('%Y%m%d'))
-    tic_list = config.model_tic_list
-    preprocessed_path = f"done_data{str(today)}.csv"
+    preprocessed_path = "done_data20220106.csv"
     if os.path.exists(preprocessed_path):
         data = pd.read_csv(preprocessed_path, index_col=0)
-        data = data[data.tic.isin(tic_list)]
     else:
         data = preprocess_data()
-        data = data[data.tic.isin(tic_list)]
         data = add_turbulence(data)
         data.to_csv(preprocessed_path)
 
     print(data.head())
     print(data.size)
-    print(data.dtypes)
 
+    # 2015/10/01 is the date that validation starts
+    # 2016/01/01 is the date that real trading starts
+    # unique_trade_date needs to start from 2015/10/01 for validation purpose
+    unique_trade_date = data[(data.datadate > 20151001) & (data.datadate <= 20161001)].datadate.unique()
+    print(len(unique_trade_date))
 
-    start = int((dt.datetime.now() + dt.timedelta(days=-365)).strftime('%Y%m%d'))
-    unique_trade_date = data[(data.datadate > start)&(data.datadate <= today)].datadate.unique()
-    
-
-    # rebalance_window is the number of days to retrain the model
-    # validation_window is the number of days to validation the model and select for trading
+    # rebalance_window is the number of months to retrain the model
+    # validation_window is the number of months to validation the model and select for trading
     rebalance_window = 63
     validation_window = 63
-    unique_trade_date = sorted(unique_trade_date)[-(validation_window+2):]
-    print(unique_trade_date)
+
     ## Ensemble Strategy
-    run_ensemble_strategy(df=data, 
-                          unique_trade_date= unique_trade_date,
-                          rebalance_window = rebalance_window,
+    run_ensemble_strategy(df=data,
+                          unique_trade_date=unique_trade_date,
+                          rebalance_window=rebalance_window,
                           validation_window=validation_window)
 
-    #_logger.info(f"saving model version: {_version}")
+    # _logger.info(f"saving model version: {_version}")
+
 
 if __name__ == "__main__":
     run_model()
+
+
+# pd.read_csv('done_data20211227.csv').tic.unique()

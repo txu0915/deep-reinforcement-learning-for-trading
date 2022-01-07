@@ -7,37 +7,24 @@ import datetime
 import os
 import yahoo_fin.stock_info as si
 
+
+
 TRAINING_DATA_FILE = "data/stock.csv"
 tic_list = si.tickers_dow()
-model_tic_list = ['AAPL',
- 'AMGN',
- 'AXP',
- 'BA',
- 'CAT',
- 'CRM',
- 'CSCO',
- 'CVX',
- 'DIS',
- 'GS',
- 'HD',
- 'HON',
- 'IBM',
- 'INTC',
- 'JNJ',
- 'JPM',
- 'KO',
- 'MCD',
- 'MMM',
- 'MRK',
- 'MSFT',
- 'NKE',
- 'PG',
- 'TRV',
- 'UNH',
- 'V',
- 'VZ',
- 'WBA',
- 'WMT']
+model_tic_list = ['AAPL','AMGN','AXP','BA','CAT','CRM','CSCO','CVX','DIS', 'GS','HD','HON','IBM','INTC',
+                  'JNJ','JPM','KO','MCD','MMM','MRK','MSFT','NKE','PG','TRV','UNH','V','VZ','WBA','WMT']
+
+# shares normalization factor
+# 100 shares per trade
+HMAX_NORMALIZE = 100
+# initial amount of money we have in our account
+INITIAL_ACCOUNT_BALANCE=1000000
+# total number of stocks in our portfolio
+STOCK_DIM = len(model_tic_list)
+state_dim = 1 + STOCK_DIM*6
+# transaction fee: 1/1000 reasonable percentage
+TRANSACTION_FEE_PERCENT = 0.001
+REWARD_SCALING = 1e-4
 
 lookback_days = 3000
 now = datetime.datetime.now().strftime('%Y%m%d%H%M')

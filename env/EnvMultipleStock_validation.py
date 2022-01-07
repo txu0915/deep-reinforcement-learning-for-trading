@@ -7,22 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pickle
-from config import config
-
-# shares normalization factor
-# 100 shares per trade
-HMAX_NORMALIZE = 100
-# initial amount of money we have in our account
-INITIAL_ACCOUNT_BALANCE=1000000
-# total number of stocks in our portfolio
-STOCK_DIM = len(config.model_tic_list)
-state_dim = 1 + STOCK_DIM*6
-# transaction fee: 1/1000 reasonable percentage
-TRANSACTION_FEE_PERCENT = 0.001
-
-# turbulence index: 90-150 reasonable threshold
-#TURBULENCE_THRESHOLD = 140
-REWARD_SCALING = 1e-4
+from config.config import *
 
 class StockEnvValidation(gym.Env):
     """A stock trading environment for OpenAI gym"""

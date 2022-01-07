@@ -7,19 +7,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pickle
-from config import config
+from config.config import *
 
-# shares normalization factor
-# 100 shares per trade
-HMAX_NORMALIZE = 100
-# initial amount of money we have in our account
-INITIAL_ACCOUNT_BALANCE=1000000
-# total number of stocks in our portfolio
-STOCK_DIM = len(config.model_tic_list)
-state_dim = 1 + STOCK_DIM*6
-# transaction fee: 1/1000 reasonable percentage
-TRANSACTION_FEE_PERCENT = 0.001
-REWARD_SCALING = 1e-4
+
 
 class StockEnvTrain(gym.Env):
     """A stock trading environment for OpenAI gym"""
@@ -39,8 +29,11 @@ class StockEnvTrain(gym.Env):
         # load data from a pandas dataframe
         self.data = self.df.loc[self.day,:]
         print(self.data)
+        print(self.df.shape, self.data.shape)
         self.terminal = False             
         # initalize state
+        print("dasdasdad")
+
         self.state = [INITIAL_ACCOUNT_BALANCE] + \
                       self.data.adjcp.values.tolist() + \
                       [0]*STOCK_DIM + \
