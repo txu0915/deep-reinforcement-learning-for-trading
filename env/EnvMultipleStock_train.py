@@ -41,6 +41,7 @@ class StockEnvTrain(gym.Env):
                       self.data.rsi.values.tolist() + \
                       self.data.cci.values.tolist() + \
                       self.data.adx.values.tolist()
+        print(STOCK_DIM,len(self.data.macd.values.tolist()),len(self.data.adjcp.values.tolist()))
         print('state length: ', len(self.state))
         print('adjcp length: ', len(self.data.adjcp.values.tolist()))
         print('macd length: ', len(self.data.macd.values.tolist()))

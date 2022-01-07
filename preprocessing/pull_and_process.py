@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from stockstats import StockDataFrame as Sdf
 from config import config
+from config.config import *
 # import pandas_market_calendars as mcal
 import datetime as dt
 import yahoo_fin.stock_info as si
@@ -18,12 +19,11 @@ import os.path
 
 
 def load_dataset():
-
     end = dt.datetime.now()
     lookback_days = config.lookback_days
     stock_file = config.TRAINING_DATA_FILE
     exist_file = os.path.exists(stock_file)
-    tic_list = config.tic_list
+    tic_list = model_tic_list
     if exist_file:
         old_data = pd.read_csv(stock_file, parse_dates=['Date'])
         old_data = old_data.drop_duplicates(subset=['tic','Date'])

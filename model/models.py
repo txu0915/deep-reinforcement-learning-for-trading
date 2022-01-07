@@ -1,4 +1,4 @@
-
+import pandas as pd
 import time
 
 from stable_baselines3.ppo import PPO
@@ -8,7 +8,7 @@ from stable_baselines3 import DDPG
 from stable_baselines3.common.noise import  OrnsteinUhlenbeckActionNoise
 from stable_baselines3.common.vec_env import DummyVecEnv
 from preprocessing.pull_and_process import *
-from config import config
+from config.config import *
 
 from env.EnvMultipleStock_train import StockEnvTrain
 from env.EnvMultipleStock_validation import StockEnvValidation
@@ -65,6 +65,7 @@ def DRL_prediction(df,
                    ):
 
     trade_data = data_split(df, start=trade_start_date, end=trade_end_date)
+    trade_data = trade_data.loc[trade_data.loc[:,'tic']!='DOW',]
     env_trade = DummyVecEnv([lambda: StockEnvTrade(trade_data,
                                                    turbulence_threshold=turbulence_threshold,
                                                    previous_state=last_state,
@@ -75,10 +76,11 @@ def DRL_prediction(df,
     for i in range(len(trade_data.index.unique())):
         action, _states = model.predict(obs_trade)
         obs_trade, rewards, dones, info = env_trade.step(action)
-        if i == (len(trade_data.index.unique()) - 2):
+        if i == (len(trade_data.index.unique()) - 1):
             # print(env_test.render())
             last_state = env_trade.render()
-
+            print(action)
+            pd.DataFrame({'tic':model_tic_list, 'action':action.reshape(-1)}).to_csv('results/final-actions-as-of-day-{}.csv'.format(now), index=False)
     df_last_state = pd.DataFrame({'last_state': last_state})
     df_last_state.to_csv('results/last_state_{}_{}.csv'.format(name, i), index=False)
     return last_state
