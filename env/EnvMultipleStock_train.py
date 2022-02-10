@@ -10,7 +10,6 @@ import pickle
 from config.config import *
 
 
-
 class StockEnvTrain(gym.Env):
     """A stock trading environment for OpenAI gym"""
     metadata = {'render.modes': ['human']}
@@ -22,17 +21,14 @@ class StockEnvTrain(gym.Env):
         self.df = df
 
         # action_space normalization and shape is STOCK_DIM
-        self.action_space = spaces.Box(low = -1, high = 1,shape = (STOCK_DIM,)) 
-        # Shape = 181: [Current Balance]+[prices 1-30]+[owned shares 1-30] 
-        # +[macd 1-30]+ [rsi 1-30] + [cci 1-30] + [adx 1-30]
-        self.observation_space = spaces.Box(low=0, high=np.inf, shape = (state_dim,))
+        self.action_space = spaces.Box(low = -1, high = 1,shape = (STOCK_DIM,))
+
         # load data from a pandas dataframe
         self.data = self.df.loc[self.day,:]
         print(self.data)
         print(self.df.shape, self.data.shape)
         self.terminal = False             
         # initalize state
-        print("dasdasdad")
 
         self.state = [INITIAL_ACCOUNT_BALANCE] + \
                       self.data.adjcp.values.tolist() + \
@@ -41,6 +37,9 @@ class StockEnvTrain(gym.Env):
                       self.data.rsi.values.tolist() + \
                       self.data.cci.values.tolist() + \
                       self.data.adx.values.tolist()
+        # Shape = 181: [Current Balance]+[prices 1-30]+[owned shares 1-30]
+        # +[macd 1-30]+ [rsi 1-30] + [cci 1-30] + [adx 1-30]
+        self.observation_space = spaces.Box(low=0, high=np.inf, shape=(len(self.state),))
         print(STOCK_DIM,len(self.data.macd.values.tolist()),len(self.data.adjcp.values.tolist()))
         print('state length: ', len(self.state))
         print('adjcp length: ', len(self.data.adjcp.values.tolist()))

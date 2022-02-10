@@ -1,12 +1,9 @@
+from collections import Counter
 from model.models import *
-
-preprocessed_path = f"data/done_data{now}.csv"
-if os.path.exists(preprocessed_path):
-    data = pd.read_csv(preprocessed_path, index_col=0)
-else:
-    data = preprocess_data()
-    data = add_turbulence(data)
-    data.to_csv(preprocessed_path)
+# data = preprocess_data(tic_list)
+# data = add_turbulence(data)
+# data.to_csv(f"data/done_data{now}.csv")
+data = pd.read_csv(f"data/done_data{20220201}.csv")
 
 
 
@@ -20,7 +17,7 @@ insample_turbulence = data[(data.datadate <= training_end_date) & (data.datadate
 insample_turbulence = insample_turbulence.drop_duplicates(subset=['datadate'])
 insample_turbulence_threshold = np.quantile(insample_turbulence.turbulence.values, .90)
 
-today = int(now)
+today = 20220127
 unique_trade_date = data[(data.datadate > trade_start_date) & (data.datadate <= today)].datadate.unique()
 print(len(unique_trade_date))
 df = data
@@ -44,7 +41,25 @@ else:
 ############## Environment Setup starts ##############
 ## training env
 i = '000'
-train = data_split(df, start=20090000, end=training_end_date)
+all_dates = df.datadate.unique()
+num_dates = sorted([[k,v] for k, v in Counter(df.groupby('tic').count().sort_values('datadate').datadate).items()],
+                   key=lambda x:x[1], reverse=True)[0][0]
+tics_data_quality = df.groupby('tic').count().sort_values('datadate').datadate==num_dates
+tics_complete_data = tics_data_quality.index[tics_data_quality==True]
+df['filtered_stocks'] = df['tic'].apply(lambda x: x in tics_complete_data and x in tic_list)
+df = df.loc[df.loc[:,'filtered_stocks']==True]
+
+# counter = 0
+# last_valid_training = all_dates[0]
+# for cur_date in all_dates:
+#     if len(df.loc[df.loc[:,'datadate']==cur_date,'tic'].unique()) != len(tic_list):
+#         print(cur_date, len(df.loc[df.loc[:,'datadate']==cur_date,'tic'].unique()))
+#         counter += 1
+#         last_valid_training = cur_date
+# print("full stock data valid from: ", last_valid_training, counter,"dates missing")
+
+
+train = data_split(df, start=20140101, end=training_end_date)
 validation = data_split(df, start=validation_start_date, end=validation_end_date)
 env_train = DummyVecEnv([lambda: StockEnvTrain(train)])
 
@@ -74,9 +89,14 @@ elif (sharpe_a2c > sharpe_ppo) & (sharpe_a2c > sharpe_ddpg):
 else:
     model_ensemble = model_ddpg
 
-#print("Used Model: ", model_ensemble)
-last_state_ensemble = DRL_prediction(df=df, model=model_ppo, name="ensemble",
+last_state_ensemble = DRL_prediction(df=df, model=model_ddpg, name="ensemble",
                                      last_state=[], iter_num=i,
                                      turbulence_threshold=turbulence_threshold,
                                      trade_start_date = trade_start_date,
                                      trade_end_date = today)
+
+# a = pd.read_csv('results/final-actions-as-of-day-20220125-test.csv')
+# b = pd.read_csv('results/final-actions-as-of-day-20220125.csv')
+#
+# sorted(a.sort_values('action').head(20).tic)
+# sorted(b.sort_values('action').head(20).tic)

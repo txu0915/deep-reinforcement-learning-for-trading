@@ -23,9 +23,7 @@ class StockEnvTrade(gym.Env):
         self.previous_state = previous_state
         # action_space normalization and shape is STOCK_DIM
         self.action_space = spaces.Box(low = -1, high = 1,shape = (STOCK_DIM,)) 
-        # Shape = 181: [Current Balance]+[prices 1-30]+[owned shares 1-30] 
-        # +[macd 1-30]+ [rsi 1-30] + [cci 1-30] + [adx 1-30]
-        self.observation_space = spaces.Box(low=0, high=np.inf, shape = (state_dim,))
+
         # load data from a pandas dataframe
         self.data = self.df.loc[self.day,:]
         self.terminal = False     
@@ -38,6 +36,9 @@ class StockEnvTrade(gym.Env):
                       self.data.rsi.values.tolist() + \
                       self.data.cci.values.tolist() + \
                       self.data.adx.values.tolist()
+        # Shape = 181: [Current Balance]+[prices 1-30]+[owned shares 1-30]
+        # +[macd 1-30]+ [rsi 1-30] + [cci 1-30] + [adx 1-30]
+        self.observation_space = spaces.Box(low=0, high=np.inf, shape=(len(self.state),))
         # initialize reward
         self.reward = 0
         self.turbulence = 0
@@ -100,9 +101,9 @@ class StockEnvTrade(gym.Env):
             pass
         
     def step(self, actions):
-        # print(self.day)
+        print('self.day',self.day)
         self.terminal = self.day >= len(self.df.index.unique())-1
-        # print(actions)
+        print(self.state[30:59])
 
         if self.terminal:
             plt.plot(self.asset_memory,'r')

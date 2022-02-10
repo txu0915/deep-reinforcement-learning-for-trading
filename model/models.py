@@ -9,7 +9,6 @@ from stable_baselines3.common.noise import  OrnsteinUhlenbeckActionNoise
 from stable_baselines3.common.vec_env import DummyVecEnv
 from preprocessing.pull_and_process import *
 from config.config import *
-
 from env.EnvMultipleStock_train import StockEnvTrain
 from env.EnvMultipleStock_validation import StockEnvValidation
 from env.EnvMultipleStock_trade import StockEnvTrade
@@ -22,7 +21,7 @@ def train_A2C(env_train, model_name, timesteps=25000):
     model.learn(total_timesteps=timesteps)
     end = time.time()
 
-    model.save(f"{config.TRAINED_MODEL_DIR}/{model_name}")
+    model.save(f"{TRAINED_MODEL_DIR}/{model_name}")
     print('Training time (A2C): ', (end - start) / 60, ' minutes')
     return model
 
@@ -38,40 +37,28 @@ def train_DDPG(env_train, model_name, timesteps=10000):
     model.learn(total_timesteps=timesteps)
     end = time.time()
 
-    model.save(f"{config.TRAINED_MODEL_DIR}/{model_name}")
+    model.save(f"{TRAINED_MODEL_DIR}/{model_name}")
     print('Training time (DDPG): ', (end-start)/60,' minutes')
     return model
 
 def train_PPO(env_train, model_name, timesteps=50000):
     start = time.time()
     model = PPO('MlpPolicy', env_train, ent_coef = 0.005, seed=2021)
-
-
     model.learn(total_timesteps=timesteps)
     end = time.time()
 
-    model.save(f"{config.TRAINED_MODEL_DIR}/{model_name}")
+    model.save(f"{TRAINED_MODEL_DIR}/{model_name}")
     print('Training time (PPO): ', (end - start) / 60, ' minutes')
     return model
 
-def DRL_prediction(df,
-                   model,
-                   name,
-                   last_state,
-                   iter_num,
-                   turbulence_threshold,
-                    trade_start_date,
-                    trade_end_date
-                   ):
+def DRL_prediction(df, model, name, last_state, iter_num, turbulence_threshold, trade_start_date,trade_end_date):
 
     trade_data = data_split(df, start=trade_start_date, end=trade_end_date)
     trade_data = trade_data.loc[trade_data.loc[:,'tic']!='DOW',]
-    env_trade = DummyVecEnv([lambda: StockEnvTrade(trade_data,
-                                                   turbulence_threshold=turbulence_threshold,
-                                                   previous_state=last_state,
-                                                   model_name=name,
-                                                   iteration=iter_num)])
+    env_trade = DummyVecEnv([lambda: StockEnvTrade(trade_data,turbulence_threshold=turbulence_threshold,
+                                                   previous_state=last_state,model_name=name,iteration=iter_num)])
     obs_trade = env_trade.reset()
+    print(trade_data.index.unique())
 
     for i in range(len(trade_data.index.unique())):
         action, _states = model.predict(obs_trade)
@@ -79,8 +66,9 @@ def DRL_prediction(df,
         if i == (len(trade_data.index.unique()) - 1):
             # print(env_test.render())
             last_state = env_trade.render()
-            print(action)
-            pd.DataFrame({'tic':model_tic_list, 'action':action.reshape(-1)}).to_csv('results/final-actions-as-of-day-{}.csv'.format(now), index=False)
+            print(action.shape, len(last_state))
+            print(_states)
+            pd.DataFrame({'tic':sorted(df.tic.unique()), 'action':action.reshape(-1)}).to_csv('results/final-actions-as-of-day-{}.csv'.format(now), index=False)
     df_last_state = pd.DataFrame({'last_state': last_state})
     df_last_state.to_csv('results/last_state_{}_{}.csv'.format(name, i), index=False)
     return last_state

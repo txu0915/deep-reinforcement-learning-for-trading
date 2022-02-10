@@ -8,7 +8,6 @@ Created on Fri Sep 17 11:52:51 2021
 import numpy as np
 import pandas as pd
 from stockstats import StockDataFrame as Sdf
-from config import config
 from config.config import *
 # import pandas_market_calendars as mcal
 import datetime as dt
@@ -18,49 +17,22 @@ import os.path
 
 
 
-def load_dataset():
+def load_dataset(tic_list):
     end = dt.datetime.now()
-    lookback_days = config.lookback_days
-    stock_file = config.TRAINING_DATA_FILE
-    exist_file = os.path.exists(stock_file)
-    tic_list = model_tic_list
-    if exist_file:
-        old_data = pd.read_csv(stock_file, parse_dates=['Date'])
-        old_data = old_data.drop_duplicates(subset=['tic','Date'])
-        new_data_list = []
-        old_tics = old_data['tic'].unique().tolist()
-        for tick in tic_list:
-            print("....",tick, '....')
-            if tick not in old_tics:
-                df_tick = pull_data_by_tic(tick,end + dt.timedelta(days=-lookback_days),end)
-            else:
-                start = old_data[old_data['tic'] == tick].Date.max()+dt.timedelta(days=1)
-                df_tick = pull_data_by_tic(tick,start ,end)
-            if len(df_tick) > 0:
-                new_data_list.append(df_tick)
-
-        if len(new_data_list) > 0 :
-            new_data = pd.concat(new_data_list)
-            df = old_data.append(new_data)
-            df = df.drop_duplicates(subset=['tic','Date'])
-            df.to_csv(stock_file, index=False)
-        else:
-            df = old_data
+    lookback_days = LOOKBACK_DAYS
+    stock_file = TRAINING_DATA_FILE
+    stocks = []
+    for tic in tic_list:
+        print("....",tic, '....')
+        df_tic = yf.download(tic,  end + dt.timedelta(days=-lookback_days), end, progress=False)
+        df_tic = df_tic.reset_index()
+        df_tic['tic'] = tic
+        stocks.append(df_tic)
+    if len(stocks) > 0:
+        df = pd.concat(stocks)
+        df = df.drop_duplicates(subset=['tic','Date'])
+        df.to_csv(stock_file, index=False)
         return df
-    else:
-        stocks = []
-        for tic in tic_list:
-            print("....",tic, '....')
-            df_tic = yf.download(tic,  end + dt.timedelta(days=-lookback_days), end, progress=False)
-            df_tic = df_tic.reset_index()
-            df_tic['tic'] = tic
-            stocks.append(df_tic)
-        if len(stocks) > 0:
-            df = pd.concat(stocks)
-            df = df.drop_duplicates(subset=['tic','Date'])
-            df.to_csv(stock_file, index=False)
-            return df
-
     return None
 
 def pull_data_by_tic(ticker, start, end):
@@ -140,9 +112,9 @@ def add_technical_indicator(df):
 
 
 
-def preprocess_data():
+def preprocess_data(tic_list):
     """data preprocessing pipeline"""
-    df = load_dataset()
+    df = load_dataset(tic_list)
     df = rename_columns(df)
     df = add_technical_indicator(df)
     df.fillna(method='bfill',inplace=True)
