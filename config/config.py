@@ -28,8 +28,8 @@ INITIAL_ACCOUNT_BALANCE=100000000
 TRANSACTION_FEE_PERCENT = 0.001
 REWARD_SCALING = 1e-4
 
-quarterly_selected_stock = '/Users/tianlongxu/financial-projects/russe3K_stock_recommendation/top20-ressull3000-based-on-sharpe-ratio.csv'
-tic_list = sorted(pd.read_csv(quarterly_selected_stock).tic.unique())
+quarterly_selected_stock = '/Users/tianlongxu/financial-projects/russe3K_stock_recommendation/russel3k_tic.csv'
+tic_list = sorted(pd.read_csv(quarterly_selected_stock).ticker.unique())
 
 # tic_list = model_tic_list
 STOCK_DIM = len(tic_list)

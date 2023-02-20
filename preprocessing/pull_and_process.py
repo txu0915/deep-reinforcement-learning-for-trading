@@ -49,10 +49,10 @@ def data_split(df,start,end):
     :param data: (df) pandas dataframe, start, end
     :return: (df) pandas dataframe
     """
-    data = df[(df.datadate > start) & (df.datadate <= end)]
-    data=data.sort_values(['datadate','tic'],ignore_index=True)
+    data = df[(df.date > start) & (df.date <= end)]
+    data=data.sort_values(['date','tic'],ignore_index=True)
     #data  = data[final_columns]
-    data.index = data.datadate.factorize()[0]
+    data.index = data.date.factorize()[0]
     return data
 
 def rename_columns(df):

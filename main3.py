@@ -16,8 +16,8 @@ data['filtered_stocks'] = data['tic'].apply(lambda x: x in tics_complete_data an
 df = data.loc[data.loc[:,'filtered_stocks']==True]
 df = df.rename(columns={'datadate':'date', 'adjcp':'close'})
 
-train = data_split(df, 20090101,20210101)
-trade = data_split(df, 20210101,20220201)
+train = data_split(df, 20090101,20220901)
+trade = data_split(df, 20220901,20221201)
 
 ratio_list = ['macd', 'rsi','cci', 'adx']
 stock_dimension = len(train.tic.unique())
